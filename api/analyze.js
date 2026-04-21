@@ -8,7 +8,8 @@ export default async function handler(req, res) {
   const GOOGLE_KEY    = process.env.GOOGLE_MAPS_KEY;
   const ANTHROPIC_KEY = process.env.ANTHROPIC_KEY;
 
-  const { address, name, specialty, url, current, target } = req.body;
+  const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+  const { address, name, specialty, url, current, target } = body || {};
 
   try {
     // ── 1. GEOCODE ────────────────────────────────────────────────────────────
@@ -144,7 +145,11 @@ Respond ONLY with valid JSON (no markdown, no backticks):
     });
 
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: err.message });
+    console.error('ANALYZE ERROR:', err);
+    return res.status(500).json({
+      error: err.message,
+      step: err.step || 'unknown',
+      stack: err.stack,
+    });
   }
 }
